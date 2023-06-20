@@ -11,34 +11,33 @@ import ru.effectiveMobile.socialMedia.services.UserServiceImpl;
 
 import java.util.Collections;
 
-@Component
-public class AuthProviderImpl implements AuthenticationProvider {
-
-    private final UserServiceImpl userDetailsService;
-
-    public AuthProviderImpl(UserServiceImpl userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
-
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String userName = authentication.getName();
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-
-        String password = authentication.getCredentials().toString();
-
-        if (!password.equals(userDetails.getPassword())) {
-            throw new BadCredentialsException("Пароль не верный");
-        }
-
-
-        return new UsernamePasswordAuthenticationToken(userDetails, password, Collections.emptyList());
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return true;
-    }
-}
+//@Component
+//public class AuthProviderImpl implements AuthenticationProvider {
+//
+//    private final UserServiceImpl userService;
+//
+//    public AuthProviderImpl(UserServiceImpl userDetailsService) {
+//        this.userService = userDetailsService;
+//    }
+//
+//
+//    @Override
+//    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+//        String userName = authentication.getName();
+//
+//        UserDetails userDetails = userService.loadUserByUsername(userName);
+//
+//        String password = authentication.getCredentials().toString();
+//
+//        if (!password.equals(userDetails.getPassword())) {
+//            throw new BadCredentialsException("Пароль не верный");
+//        }
+//
+//        return new UsernamePasswordAuthenticationToken(userDetails, password, Collections.emptyList());
+//    }
+//
+//    @Override
+//    public boolean supports(Class<?> authentication) {
+//        return true;
+//    }
+//}
