@@ -2,12 +2,32 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
-  <title>Hello World!</title>
+    <title>Hello World!</title>
 </head>
 <body>
 <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
+
+
+<div th:each="(message:${messages})">
+    <p th:text="${message.getText() + ', ' + message.getTag()}"></p>
+</div>
+
+<form th:method="POST" th:action="@{/add}" th:object="${newMessage}">
+    <input type="text" th:field="*{text}"><br>
+    <input type="text" th:field="*{tag}"><br>
+    <input type="submit" value="add new Message">
+</form>
+
+<form method="POST" th:action="@{/filter}">
+    <input type="text" name="filter"><br>
+    <input type="submit" value="Search!">
+</form>
+
+<br>
+<br>
+<hr>
 <form th:action="@{/logout}" method="post">
-  <input type="submit" value="Sign Out"/>
+    <input type="submit" value="Sign Out"/>
 </form>
 </body>
 </html>

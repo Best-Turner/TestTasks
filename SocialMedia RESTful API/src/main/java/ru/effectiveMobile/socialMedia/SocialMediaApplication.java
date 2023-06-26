@@ -7,10 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SocialMediaApplication {
-    //static Logger log = LogManager.getLogger(SocialMediaApplication.class);
 
     public static void main(String[] args) {
-        //log.info("Приложение запустилось");
         SpringApplication.run(SocialMediaApplication.class, args);
     }
 }
