@@ -59,4 +59,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return new UserDetailsImpl(user.get());
 
     }
+
+    public User getUserByName(String name) {
+        return userRepository.findByName(name).orElse(null);
+    }
 }

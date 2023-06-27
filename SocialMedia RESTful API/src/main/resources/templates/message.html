@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <title>Hello World!</title>
+</head>
+<body>
+<h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
+
+<h3>Список сообщений</h3>
+<div th:each="(message:${messages})" >
+    <span style="color:blue">Текст сообщения: </span><span th:text="${message.getText() + ', ' + message.getTag()}">
+    </span>
+    <br>
+    <span style="color:blue">Сообщение добавил пользователь - </span> <strong th:text="${message.getAuthorName()}"></strong>
+    <hr/>
+</div>
+
+<form th:method="POST" th:action="@{/message}" th:object="${newMessage}">
+    <input type="text" th:field="*{text}" placeholder="Введите сообщение">
+    <input type="text" th:field="*{tag}" placeholder="тег"><br>
+    <input type="submit" value="Добавить">
+</form>
+
+<form method="POST" th:action="@{/message/filter}">
+    <input type="text" name="filter"><br>
+    <input type="submit" value="Искать!">
+</form>
+
+<br>
+<br>
+<hr>
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Выход"/>
+</form>
+</body>
+</html>
