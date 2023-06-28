@@ -19,7 +19,7 @@ public class UserController {
         this.registrationService = registrationService;
     }
 
-    @GetMapping("/registration")
+    @GetMapping
     public String registrationPage(@ModelAttribute("newUser") User user) {
         return "registration";
     }

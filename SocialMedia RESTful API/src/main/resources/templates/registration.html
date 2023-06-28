@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-<form th:method="POST" th:action="@{/user/registration}" th:object="${newUser}">
+<form th:method="POST" th:action="@{/user}" th:object="${newUser}">
 Имя пользователя: <input type="text" th:field="*{name}">
     <br>
 Адресс электронной почты: <input type="text" th:field="*{email}">

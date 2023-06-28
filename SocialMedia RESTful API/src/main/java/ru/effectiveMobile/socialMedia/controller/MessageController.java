@@ -56,6 +56,4 @@ public class MessageController {
         messageRepo.save(message);
         return "redirect:/message";
     }
-
-
 }
