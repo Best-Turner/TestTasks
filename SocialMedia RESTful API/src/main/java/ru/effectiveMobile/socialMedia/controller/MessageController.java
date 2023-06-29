@@ -27,7 +27,9 @@ public class MessageController {
     @GetMapping
     public String messagePage(@ModelAttribute("newMessage") Message message,
                               Model model) {
-        model.addAttribute("messages", messageRepo.findAll());
+        String name = SecurityContextHolder.getContext().getAuthentication().getName();
+        User userByName = userRepo.getUserByName(name);
+        model.addAttribute("messages", userByName.getMessages());
         return "message";
     }
 
@@ -54,6 +56,12 @@ public class MessageController {
         User userByName = userRepo.getUserByName(name);
         message.setAuthor(userByName);
         messageRepo.save(message);
+        return "redirect:/message";
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteMessage(@PathVariable("id") int id) {
+        messageRepo.deleteById(id);
         return "redirect:/message";
     }
 }

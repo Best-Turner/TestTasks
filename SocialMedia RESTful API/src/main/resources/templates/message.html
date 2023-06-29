@@ -9,16 +9,22 @@
 
 <h3>Список сообщений</h3>
 <div th:each="(message:${messages})" >
-    <span style="color:blue">Текст сообщения: </span><span th:text="${message.getText() + ', ' + message.getTag()}">
-    </span>
+    <span style="color:blue">Текст сообщения: </span>
+    <span th:text="${message.getText() + ', ' + message.getTag()}"></span>
+    <span th:text="${message.getText() + ', ' + message.getTag()}"></span>
     <br>
     <span style="color:blue">Сообщение добавил пользователь - </span> <strong th:text="${message.getAuthorName()}"></strong>
+
+    <form th:method="DELETE" th:action="@{/message/{id}(id=${message.getId()})}">
+        <input type="submit" value="Удалить">
+    </form>
     <hr/>
 </div>
 
 <form th:method="POST" th:action="@{/message}" th:object="${newMessage}">
     <input type="text" th:field="*{text}" placeholder="Введите сообщение">
     <input type="text" th:field="*{tag}" placeholder="тег"><br>
+    <input type="file" name="file"><br>
     <input type="submit" value="Добавить">
 </form>
 
