@@ -7,13 +7,15 @@
 <body>
 <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
 
-<h3>Список сообщений</h3>
-<div th:each="(message:${messages})" >
+<h3>Ваши записи</h3>
+
+<div th:each="(message:${messages})">
     <span style="color:blue">Текст сообщения: </span>
     <span th:text="${message.getText() + ', ' + message.getTag()}"></span>
-    <span th:text="${message.getText() + ', ' + message.getTag()}"></span>
+    <div th:if="${message.getFileName()!=null}">
+        <img width="100" height="100" th:src="@{'/img/' + ${message.getFileName()}}"/>
+    </div>
     <br>
-    <span style="color:blue">Сообщение добавил пользователь - </span> <strong th:text="${message.getAuthorName()}"></strong>
 
     <form th:method="DELETE" th:action="@{/message/{id}(id=${message.getId()})}">
         <input type="submit" value="Удалить">
@@ -21,7 +23,7 @@
     <hr/>
 </div>
 
-<form th:method="POST" th:action="@{/message}" th:object="${newMessage}">
+<form th:method="POST" th:action="@{/message}" th:object="${newMessage}" enctype="multipart/form-data">
     <input type="text" th:field="*{text}" placeholder="Введите сообщение">
     <input type="text" th:field="*{tag}" placeholder="тег"><br>
     <input type="file" name="file"><br>
@@ -39,5 +41,6 @@
 <form th:action="@{/logout}" method="post">
     <input type="submit" value="Выход"/>
 </form>
+
 </body>
 </html>

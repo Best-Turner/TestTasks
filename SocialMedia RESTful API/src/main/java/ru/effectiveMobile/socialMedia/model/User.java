@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +27,20 @@ public class User {
 
     @OneToMany(mappedBy = "author")
     private List<Message> messages;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_subscription",
+            joinColumns = {@JoinColumn(name = "channel_id")},
+            inverseJoinColumns = @JoinColumn(name = "subscriber_id"))
+    private Set<User> subscription = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_subscription",
+            joinColumns = {@JoinColumn(name = "subscriber_id")},
+            inverseJoinColumns = @JoinColumn(name = "channel_id"))
+    private Set<User> subscribers = new HashSet<>();
 
     public User(String name, String email, String password) {
         this.name = name;
