@@ -10,6 +10,7 @@ import ru.effectiveMobile.socialMedia.model.User;
 import ru.effectiveMobile.socialMedia.repositories.UserRepository;
 import ru.effectiveMobile.socialMedia.security.UserDetailsImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -58,6 +59,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         return new UserDetailsImpl(user.get());
 
+    }
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     public User getUserByName(String name) {

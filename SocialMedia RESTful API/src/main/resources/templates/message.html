@@ -30,13 +30,16 @@
     <input type="submit" value="Добавить">
 </form>
 
-<form method="POST" th:action="@{/message/filter}">
-    <input type="text" name="filter"><br>
+<form method="GET" action="/message">
+    <input type="text" name="filter" th:value="${filter}"><br>
     <input type="submit" value="Искать!">
 </form>
 
 <br>
 <br>
+<a href="/user/userList">
+    <button>Список пользователей</button>
+</a>
 <hr>
 <form th:action="@{/logout}" method="post">
     <input type="submit" value="Выход"/>

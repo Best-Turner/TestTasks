@@ -2,21 +2,22 @@ package ru.effectiveMobile.socialMedia.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import ru.effectiveMobile.socialMedia.model.User;
 import ru.effectiveMobile.socialMedia.services.RegistrationService;
+import ru.effectiveMobile.socialMedia.services.UserService;
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
     private final RegistrationService registrationService;
+    private final UserService userservice;
 
     @Autowired
-    public UserController(RegistrationService registrationService) {
+    public UserController(RegistrationService registrationService, UserService userService) {
         this.registrationService = registrationService;
+        this.userservice = userService;
     }
 
     @GetMapping
@@ -28,5 +29,16 @@ public class UserController {
     public String register(@ModelAttribute("newUser") User user) {
         registrationService.register(user);
         return "redirect:/";
+    }
+
+    @GetMapping("/userList")
+    public String getUsersList(Model model) {
+        model.addAttribute("users", userservice.getAllUsers());
+        return "userList";
+    }
+    @GetMapping("{user}")
+    public String editUser(@PathVariable User user) {
+        System.out.println("hello");
+        return "";
     }
 }
