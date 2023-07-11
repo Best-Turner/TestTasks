@@ -36,9 +36,17 @@ public class UserController {
         model.addAttribute("users", userservice.getAllUsers());
         return "userList";
     }
+
     @GetMapping("{user}")
-    public String editUser(@PathVariable User user) {
-        System.out.println("hello");
-        return "";
+    public String editUser(@PathVariable User user, Model model) {
+        model.addAttribute("user", user);
+        return "editUser";
     }
+
+    @PostMapping("{id}")
+    public String update(@PathVariable("id") long id, @ModelAttribute("user") User user) {
+    userservice.updateUser(id, user);
+    return "redirect:/userList";
+    }
+
 }
