@@ -15,12 +15,14 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+
+    private final UserService userService;
 
     @Autowired
-    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserService userService) {
         this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
+
+        this.userService = userService;
     }
 
     @Override
@@ -30,11 +32,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> getOwnerTasks(long userId) {
-        User userById = userRepository.findById(userId).orElse(null);
+        User userById = userService.findOne(userId);
         if (userById == null) {
             return null;
         }
         return userById.getTasks();
+    }
+
+    @Override
+    public Task findOne(long taskId) {
+        return taskRepository.findById(taskId).orElse(null);
     }
 
     @Override

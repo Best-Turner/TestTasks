@@ -12,6 +12,8 @@ public interface TaskService {
 
     List<Task> getOwnerTasks(long userId);
 
+    Task findOne(long taskId);
+
     void changeTask(long taskId, Task updatedTask);
 
     void deleteTask(long id);
