@@ -9,40 +9,39 @@ import ru.effective.mobile.model.User;
 import ru.effective.mobile.service.UserService;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
-    private final UserService service;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService service) {
-        this.service = service;
+        this.userService = service;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<HttpStatus> registration(@RequestBody User user) {
+        userService.saveUser(user);
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable long id) {
-        return service.findOne(id);
+    public ResponseEntity<User> getUser(@PathVariable long id) {
+        User user = userService.findOne(id);
+        return (user != null) ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<HttpStatus> updateUser(@PathVariable("id") User userFromDB,
                                                  @RequestBody User user) {
         BeanUtils.copyProperties(user, userFromDB, "id");
-        service.saveUser(userFromDB);
-    return ResponseEntity.ok(HttpStatus.OK);
+        userService.saveUser(userFromDB);
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable long id) {
-        service.deleteUser(id);
-        return ResponseEntity.ok(HttpStatus.OK);
-    }
-
-
-
-    @PostMapping("/registration")
-    public ResponseEntity<HttpStatus> registration(@RequestBody User user) {
-        service.saveUser(user);
+        userService.deleteUser(id);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

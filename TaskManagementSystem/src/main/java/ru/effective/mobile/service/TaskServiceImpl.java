@@ -1,5 +1,7 @@
 package ru.effective.mobile.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.effective.mobile.model.Priority;
@@ -7,9 +9,12 @@ import ru.effective.mobile.model.Status;
 import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
 import ru.effective.mobile.repository.TaskRepository;
-import ru.effective.mobile.repository.UserRepository;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -26,27 +31,42 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void createTask(String title, String description, Priority priority, User owner) {
-        taskRepository.save(new Task(title, description, Status.PENDING, priority, owner));
-    }
-
-    @Override
-    public List<Task> getOwnerTasks(long userId) {
-        User userById = userService.findOne(userId);
-        if (userById == null) {
-            return null;
+    public void saveTask(Task task, long userId) {
+        User owner = userService.findOne(userId);
+        task.setOwner(owner);
+        if (task.getPriority() == null) {
+            task.setPriority(Priority.MEDIUM);
         }
-        return userById.getTasks();
+        task.setStatus(Status.PENDING);
+        taskRepository.save(task);
     }
 
     @Override
-    public Task findOne(long taskId) {
-        return taskRepository.findById(taskId).orElse(null);
+    public List<Task> getOwnerTasks(User user) {
+        //User userById = userService.findOne(userId);
+//        if (userById == null) {
+//            return null;
+//        }
+         return taskRepository.findTasksByOwner(user);
     }
 
     @Override
-    public void changeTask(long taskId, Task updatedTask) {
-        updatedTask.setId(taskId);
+    public List<Task> getAllTasks() {
+        return taskRepository.findAll();
+    }
+
+    @Override
+    public Task findOne(long taskId, User user) {
+
+        return taskRepository.findTaskByIdAndOwner(taskId, user);
+    }
+
+    @Override
+    public void changeTask(Task updateTask, Task newTask) {
+
+        Long ownerId = updateTask.getOwner().getId();
+        BeanUtils.copyProperties(newTask, updateTask, "id");
+        saveTask(updateTask, ownerId);
     }
 
     @Override

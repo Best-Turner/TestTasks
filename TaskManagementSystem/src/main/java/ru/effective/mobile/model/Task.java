@@ -1,41 +1,47 @@
 package ru.effective.mobile.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "tasks")
-public class Task {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Task implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotNull
+    @JsonProperty("title")
     private String title;
     @NotNull
+    @JsonProperty("description")
     private String description;
-    @NotNull
+
     @Enumerated(EnumType.STRING)
+    @JsonProperty("status")
     private Status status;
-    @NotNull
+
     @Enumerated(EnumType.STRING)
+    @JsonProperty("priority")
     private Priority priority;
-    @NotNull
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
     private User owner;
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "executor_id", referencedColumnName = "id")
     private User executor;
 
     public Task() {
     }
 
-    public Task(String title, String description, Status status, Priority priority, User owner) {
+    public Task(String title, String description) {
         this.title = title;
         this.description = description;
-        this.status = status;
-        this.priority = priority;
-        this.owner = owner;
     }
 
     public Long getId() {

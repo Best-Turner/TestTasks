@@ -1,5 +1,6 @@
 package ru.effective.mobile.service;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.effective.mobile.model.User;
@@ -35,9 +36,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changeUser(long userId, User updateUser) {
-        updateUser.setId(userId);
-        userRepository.save(updateUser);
+    public void changeUser(User userFromDB, User newUser) {
+        BeanUtils.copyProperties(newUser, userFromDB, "id");
+        userRepository.save(userFromDB);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package ru.effective.mobile.service;
 
-import ru.effective.mobile.model.Priority;
 import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
 
@@ -8,13 +7,14 @@ import java.util.List;
 
 public interface TaskService {
 
-    void createTask(String title, String description, Priority priority, User ownerId);
+    void saveTask(Task task, long userId);
 
-    List<Task> getOwnerTasks(long userId);
+    List<Task> getOwnerTasks(User user);
+    List<Task> getAllTasks();
 
-    Task findOne(long taskId);
+    Task findOne(long taskId, User user);
 
-    void changeTask(long taskId, Task updatedTask);
+    void changeTask(Task updateTask, Task newTask);
 
     void deleteTask(long id);
 
