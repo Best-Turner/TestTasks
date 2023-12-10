@@ -1,12 +1,19 @@
 package ru.effective.mobile.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.effective.mobile.model.User;
 import ru.effective.mobile.repository.UserRepository;
 
+import java.beans.PropertyDescriptor;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -36,13 +43,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changeUser(User userFromDB, User newUser) {
-        BeanUtils.copyProperties(newUser, userFromDB, "id");
+    public void changeUser(User userFromDB, Map<String, Object> map) {
+        ObjectMapper mapper = new ObjectMapper();
+        User newUser = mapper.convertValue(map, User.class);
+        BeanUtils.copyProperties(newUser, userFromDB, getNullPropertyNames(newUser));
         userRepository.save(userFromDB);
     }
 
     @Override
     public void deleteUser(long userId) {
         userRepository.deleteById(userId);
+    }
+
+    private static String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        PropertyDescriptor[] pds = src.getPropertyDescriptors();
+
+        Set<String> emptyNames = new HashSet<>();
+        for (PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) emptyNames.add(pd.getName());
+        }
+
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
     }
 }

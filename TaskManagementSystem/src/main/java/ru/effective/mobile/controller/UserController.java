@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.effective.mobile.model.User;
 import ru.effective.mobile.service.UserService;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -33,9 +35,8 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<HttpStatus> updateUser(@PathVariable("id") User userFromDB,
-                                                 @RequestBody User user) {
-        BeanUtils.copyProperties(user, userFromDB, "id");
-        userService.saveUser(userFromDB);
+                                                 @RequestBody Map<String, Object> requestParam) {
+        userService.changeUser(userFromDB, requestParam);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

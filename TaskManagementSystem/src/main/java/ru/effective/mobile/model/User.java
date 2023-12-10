@@ -1,9 +1,10 @@
 package ru.effective.mobile.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -11,14 +12,18 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @JsonProperty(value = "name")
     private String name;
     @NotNull
+    @JsonProperty(value = "email")
     private String email;
     @NotNull
+    @JsonProperty(value = "password")
     private String password;
     @JsonIgnore
     @OneToMany(mappedBy = "owner",fetch = FetchType.LAZY)

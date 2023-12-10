@@ -3,6 +3,7 @@ package ru.effective.mobile.service;
 import ru.effective.mobile.model.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
@@ -13,7 +14,7 @@ public interface UserService {
 
     List<User> findAll();
 
-    void changeUser(User updateUser, User newUser);
+    void changeUser(User updateUser, Map<String, Object> paramForNewUser);
 
     void deleteUser(long userId);
 }
