@@ -1,5 +1,7 @@
 package ru.effective.mobile.service;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
@@ -7,6 +9,7 @@ import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.effective.mobile.exception.InvalidParameterException;
+import ru.effective.mobile.exception.MissingFieldError;
 import ru.effective.mobile.exception.TaskNotFoundException;
 import ru.effective.mobile.exception.UserNotFoundException;
 import ru.effective.mobile.model.Priority;
@@ -16,6 +19,7 @@ import ru.effective.mobile.model.User;
 import ru.effective.mobile.repository.TaskRepository;
 
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -84,36 +88,59 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public boolean changeStatus(Task task, Map<String, String> requestParam) throws InvalidParameterException {
+    public void changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException {
+
+        if (task.getExecutor().getId() != executorId) {
+            throw new IllegalArgumentException("ExecutorId does not match the task's executorId");
+        }
         String statusParam = "status";
-
         if (!requestParam.containsKey(statusParam)) {
-            throw new InvalidParameterException(String.format("Передаваемый параметр %s не найден", statusParam));
+            throw new InvalidParameterException(String.format("Passed parameter %s not found", statusParam));
         }
 
-        String requestStatus = requestParam.get(statusParam);
-        if (requestStatus.equalsIgnoreCase(Status.COMPLETED.name())) {
-            task.setStatus(Status.COMPLETED);
-            taskRepository.save(task);
-            return true;
-        }
-        return false;
-
+        String inputStatus = requestParam.get(statusParam);
+        Status[] array = new Status[]{
+                Status.IN_PROGRESS,
+                Status.COMPLETED
+        };
+        Status updatedStatus = Arrays.stream(array).filter(status -> status.name().equalsIgnoreCase(inputStatus))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No arguments found. Possible options: IN_PROGRESS, COMPLETED"));
+        task.setStatus(updatedStatus);
+        taskRepository.save(task);
     }
 
     @Override
-    public void  assignExecutor(long taskId,long ownerId, long executorId) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException {
+    public void assignExecutor(long taskId, long ownerId, Map<String, Object> request) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException, MissingFieldError {
+
+        String executorKey = "executorId";
+        Long executorId;
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.convertValue(request, JsonNode.class);
+
+        // проверка - содержит ли входящий параметр необходимый ключ и значение
+        if (jsonNode.has(executorKey) && (jsonNode.get(executorKey).isNumber() || jsonNode.get(executorKey).isNull())) {
+            executorId = jsonNode.get(executorKey).isNull() ? null : jsonNode.get(executorKey).asLong();
+        } else {
+            throw new MissingFieldError("Raw field in request");
+        }
+
         Optional<Task> taskById = taskRepository.findById(taskId);
         Task taskFromDB = taskById.orElseThrow(() -> new TaskNotFoundException("This task not found"));
 
-        User executorFromDb = userService.findOne(executorId);
-        if (executorFromDb == null) {
-            throw new UserNotFoundException(String.format("Executor with ID = %s not found", executorId));
-        }
         if (taskFromDB.getOwner().getId() != ownerId) {
             throw new InvalidParameterException("You cannot assign an executor");
         }
-        taskFromDB.setExecutor(executorFromDb);
+
+        if (executorId != null) {
+            User executorFromDb = userService.findOne(executorId);
+            if (executorFromDb == null) {
+                throw new UserNotFoundException(String.format("Executor with ID = %s not found", executorId));
+            }
+            taskFromDB.setExecutor(executorFromDb);
+        } else {
+            taskFromDB.setExecutor(null);
+        }
         taskRepository.save(taskFromDB);
     }
 

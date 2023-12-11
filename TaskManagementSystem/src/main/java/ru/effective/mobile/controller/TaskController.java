@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.effective.mobile.exception.InvalidParameterException;
+import ru.effective.mobile.exception.MissingFieldError;
 import ru.effective.mobile.exception.TaskNotFoundException;
 import ru.effective.mobile.exception.UserNotFoundException;
 import ru.effective.mobile.model.Task;
@@ -62,36 +63,32 @@ public class TaskController {
     @GetMapping("/all")
     public ResponseEntity<List<Task>> getAllTasks() {
         List<Task> allTasks = taskService.getAllTasks();
-        return (!allTasks.isEmpty()) ? ResponseEntity.ok(allTasks) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ofNullable(allTasks);
+        //return (!allTasks.isEmpty()) ? ResponseEntity.ok(allTasks) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @PatchMapping("/{taskId}/{executorId}/status")
     public ResponseEntity<String> updateTaskStatus(@PathVariable("taskId") Task task,
                                                    @PathVariable("executorId") long executorId,
                                                    @RequestBody Map<String, String> requestParam) {
-        if (task.getExecutor().getId() != executorId) {
-            return ResponseEntity.notFound().build();
-        }
-        try {
-            boolean isChanged = taskService.changeStatus(task, requestParam);
-            if (isChanged) {
-                return ResponseEntity.ok("Status changed!");
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-        } catch (InvalidParameterException e) {
+        try {
+            taskService.changeStatus(task, executorId, requestParam);
+            return ResponseEntity.ok("Status changed!");
+
+        } catch (InvalidParameterException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @PatchMapping("/{taskId}/{executorId}")
-    public ResponseEntity<String> assignTaskExecutor(@PathVariable("taskId") long  taskId,
+    @PatchMapping("/{taskId}/assign")
+    public ResponseEntity<String> assignTaskExecutor(@PathVariable("taskId") long taskId,
                                                      @PathVariable("userId") long ownerId,
-                                                     @PathVariable("executorId") long executorId) {
+                                                     @RequestBody Map<String, Object> requestParam) {
         try {
-            taskService.assignExecutor(taskId, ownerId, executorId);
+            taskService.assignExecutor(taskId, ownerId, requestParam);
             return ResponseEntity.ok().body("Executor is assign");
-        } catch (UserNotFoundException | TaskNotFoundException | InvalidParameterException e) {
+        } catch (UserNotFoundException | TaskNotFoundException | InvalidParameterException | MissingFieldError e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

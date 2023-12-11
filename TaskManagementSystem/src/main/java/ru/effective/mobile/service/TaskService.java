@@ -1,6 +1,7 @@
 package ru.effective.mobile.service;
 
 import ru.effective.mobile.exception.InvalidParameterException;
+import ru.effective.mobile.exception.MissingFieldError;
 import ru.effective.mobile.exception.TaskNotFoundException;
 import ru.effective.mobile.exception.UserNotFoundException;
 import ru.effective.mobile.model.Task;
@@ -22,7 +23,7 @@ public interface TaskService {
 
     void deleteTask(long id);
 
-    boolean changeStatus(Task task, Map<String, String> requestParam) throws InvalidParameterException;
+    boolean changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException;
 
-    void assignExecutor(long taskId, long ownerId, long executorId) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException;
+    void assignExecutor(long taskId, long ownerId, Map<String, Object> requestParam) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException, MissingFieldError;
 }
