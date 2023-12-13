@@ -23,7 +23,7 @@ public interface TaskService {
 
     void deleteTask(long id);
 
-    boolean changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException;
+    void changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException;
 
     void assignExecutor(long taskId, long ownerId, Map<String, Object> requestParam) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException, MissingFieldError;
 }

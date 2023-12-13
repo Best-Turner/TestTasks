@@ -1,6 +1,5 @@
 package ru.effective.mobile.service;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.BeanUtils;
@@ -19,7 +18,6 @@ import ru.effective.mobile.model.User;
 import ru.effective.mobile.repository.TaskRepository;
 
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.util.*;
 
 @Service

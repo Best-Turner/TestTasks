@@ -1,10 +1,13 @@
 package ru.effective.mobile.controller;
 
-import org.springframework.beans.BeanUtils;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import ru.effective.mobile.exception.UserNotCreatedException;
 import ru.effective.mobile.model.User;
 import ru.effective.mobile.service.UserService;
 
@@ -22,7 +25,17 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<HttpStatus> registration(@RequestBody User user) {
+    public ResponseEntity<HttpStatus> registration(@RequestBody @Valid User user,
+                                                   BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            for (FieldError error : bindingResult.getFieldErrors()) {
+                errorMessage.append(error.getField())
+                        .append(" - ")
+                        .append(error.getDefaultMessage());
+            }
+            throw new UserNotCreatedException(errorMessage.toString());
+        }
         userService.saveUser(user);
         return ResponseEntity.ok(HttpStatus.OK);
     }
@@ -36,6 +49,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<HttpStatus> updateUser(@PathVariable("id") User userFromDB,
                                                  @RequestBody Map<String, Object> requestParam) {
+
         userService.changeUser(userFromDB, requestParam);
         return ResponseEntity.ok(HttpStatus.OK);
     }
@@ -45,5 +59,6 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok(HttpStatus.OK);
     }
+
 
 }

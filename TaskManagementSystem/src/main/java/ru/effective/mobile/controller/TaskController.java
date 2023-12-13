@@ -1,13 +1,13 @@
 package ru.effective.mobile.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import ru.effective.mobile.exception.InvalidParameterException;
-import ru.effective.mobile.exception.MissingFieldError;
-import ru.effective.mobile.exception.TaskNotFoundException;
-import ru.effective.mobile.exception.UserNotFoundException;
+import ru.effective.mobile.exception.*;
 import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
 import ru.effective.mobile.service.TaskService;
@@ -37,7 +37,19 @@ public class TaskController {
 
     @PostMapping()
     public ResponseEntity<HttpStatus> saveTask(@PathVariable("userId") long userId,
-                                               @RequestBody Task task) {
+                                               @RequestBody @Valid Task task,
+                                               BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError field : fieldErrors) {
+                errorMessage.append(field.getField())
+                        .append(" - ")
+                        .append(field.getDefaultMessage());
+            }
+            throw new TaskNotCreatedException(errorMessage);
+        }
+
         taskService.saveTask(task, userId);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -64,8 +76,9 @@ public class TaskController {
     public ResponseEntity<List<Task>> getAllTasks() {
         List<Task> allTasks = taskService.getAllTasks();
         return ResponseEntity.ofNullable(allTasks);
-        //return (!allTasks.isEmpty()) ? ResponseEntity.ok(allTasks) : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
+    @GetMapping()
 
     @PatchMapping("/{taskId}/{executorId}/status")
     public ResponseEntity<String> updateTaskStatus(@PathVariable("taskId") Task task,

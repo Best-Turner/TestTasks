@@ -4,21 +4,35 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "tasks")
+@Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
+@RequiredArgsConstructor
 public class Task implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
+
+    @NotNull(message = "This field cannot be empty")
+    @Size(min = 3, max = 35, message = "This field must be for 3 to 35 characters")
+    @NotBlank(message = "This field cannot contain spaces")
     @JsonProperty("title")
     private String title;
-    @NotNull
+
+    @NotNull(message = "This field cannot be empty")
+    @NotBlank(message = "This field cannot contain spaces")
     @JsonProperty("description")
     private String description;
 
@@ -36,67 +50,4 @@ public class Task implements Serializable {
     @JoinColumn(name = "executor_id", referencedColumnName = "id")
     private User executor;
 
-    public Task() {
-    }
-
-    public Task(String title, String description) {
-        this.title = title;
-        this.description = description;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public Priority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Priority priority) {
-        this.priority = priority;
-    }
-
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-    }
-
-    public User getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(User executor) {
-        this.executor = executor;
-    }
 }
