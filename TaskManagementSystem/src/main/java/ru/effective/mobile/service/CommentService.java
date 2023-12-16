@@ -1,11 +1,11 @@
 package ru.effective.mobile.service;
 
-import org.springframework.stereotype.Service;
+import ru.effective.mobile.model.Comment;
 
-@Service
-public class CommentService {
+public interface CommentService {
 
-    public void save() {
+    void save(String text);
+    Comment getCommentsForTask(long taskId);
 
-    }
+
 }

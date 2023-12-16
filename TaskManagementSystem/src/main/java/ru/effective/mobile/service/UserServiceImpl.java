@@ -18,10 +18,12 @@ import java.util.Set;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
+
     @Override
     public void saveUser(User user) {
         userRepository.save(user);
@@ -51,8 +53,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(long userId) {
-        userRepository.deleteById(userId);
+    public boolean deleteUser(long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null) {
+            userRepository.deleteById(userId);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public User exists(long userId) {
+        return userRepository.findById(userId).orElse(null);
     }
 
     private static String[] getNullPropertyNames(Object source) {

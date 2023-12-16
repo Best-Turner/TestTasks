@@ -1,5 +1,6 @@
 package ru.effective.mobile.service;
 
+import org.springframework.expression.AccessException;
 import ru.effective.mobile.exception.InvalidParameterException;
 import ru.effective.mobile.exception.MissingFieldError;
 import ru.effective.mobile.exception.TaskNotFoundException;
@@ -25,5 +26,9 @@ public interface TaskService {
 
     void changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException;
 
-    void assignExecutor(long taskId, long ownerId, Map<String, Object> requestParam) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException, MissingFieldError;
+    void assignExecutor(long taskId, long ownerId, Map<String, Object> requestParam) throws AccessException;
+    Task exists(long taskId);
+    List<Task> getAllExecutorTasks(long executorId);
+    Task getOneExecutorTask(long executorId);
+
 }

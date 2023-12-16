@@ -6,6 +6,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.AccessException;
 import org.springframework.stereotype.Service;
 import ru.effective.mobile.exception.InvalidParameterException;
 import ru.effective.mobile.exception.MissingFieldError;
@@ -49,10 +50,6 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<Task> getOwnerTasks(User user) {
-        //User userById = userService.findOne(userId);
-//        if (userById == null) {
-//            return null;
-//        }
         return taskRepository.findTasksByOwner(user);
     }
 
@@ -63,8 +60,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task findOne(long taskId, User user) {
-
         return taskRepository.findTaskByIdAndOwner(taskId, user);
+
     }
 
     @Override
@@ -109,9 +106,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void assignExecutor(long taskId, long ownerId, Map<String, Object> request) throws UserNotFoundException, TaskNotFoundException, InvalidParameterException, MissingFieldError {
-
-        String executorKey = "executorId";
+    public void assignExecutor(long taskId, long ownerId, Map<String, Object> request) throws AccessException {
+        String executorKey = "executor";
         Long executorId;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.convertValue(request, JsonNode.class);
@@ -127,19 +123,37 @@ public class TaskServiceImpl implements TaskService {
         Task taskFromDB = taskById.orElseThrow(() -> new TaskNotFoundException("This task not found"));
 
         if (taskFromDB.getOwner().getId() != ownerId) {
-            throw new InvalidParameterException("You cannot assign an executor");
+            throw new AccessException("You cannot assign an executor");
         }
 
         if (executorId != null) {
             User executorFromDb = userService.findOne(executorId);
             if (executorFromDb == null) {
-                throw new UserNotFoundException(String.format("Executor with ID = %s not found", executorId));
+                throw new UserNotFoundException("This executor not found");
             }
             taskFromDB.setExecutor(executorFromDb);
         } else {
             taskFromDB.setExecutor(null);
         }
         taskRepository.save(taskFromDB);
+    }
+
+    @Override
+    public Task exists(long taskId) {
+        return taskRepository.findById(taskId).orElse(null);
+
+    }
+
+    @Override
+    public List<Task> getAllExecutorTasks(long executorId) {
+        checkExecutorExists(executorId);
+        return taskRepository.findTasksByExecutorId(executorId);
+    }
+
+    @Override
+    public Task getOneExecutorTask(long executorId) {
+        checkExecutorExists(executorId);
+        return taskRepository.findTaskByExecutorId(executorId);
     }
 
 
@@ -155,5 +169,12 @@ public class TaskServiceImpl implements TaskService {
 
         String[] result = new String[emptyNames.size()];
         return emptyNames.toArray(result);
+    }
+
+    private void checkExecutorExists(long executorId) {
+        boolean exists = taskRepository.existsExecutor(executorId);
+        if (!exists) {
+            throw new UserNotFoundException("This executor not found");
+        }
     }
 }

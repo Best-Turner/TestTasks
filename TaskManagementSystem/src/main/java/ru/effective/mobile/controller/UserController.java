@@ -7,10 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import ru.effective.mobile.exception.TaskNotFoundException;
 import ru.effective.mobile.exception.UserNotCreatedException;
+import ru.effective.mobile.exception.UserNotFoundException;
+import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
+import ru.effective.mobile.service.TaskService;
 import ru.effective.mobile.service.UserService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,10 +24,12 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final TaskService taskService;
 
     @Autowired
-    public UserController(UserService service) {
+    public UserController(UserService service, TaskService taskService) {
         this.userService = service;
+        this.taskService = taskService;
     }
 
     @PostMapping("/register")
@@ -56,9 +64,49 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable long id) {
-        userService.deleteUser(id);
+        boolean exists = userService.deleteUser(id);
+        if (!exists) {
+            throw new UserNotFoundException("This user not found");
+        }
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
+    @GetMapping("/{ownerId}/tasks")
+    public ResponseEntity<List<Task>> getAllOwnerTasks(@PathVariable("ownerId") long userId) {
+        User fromDb = userService.exists(userId);
+        if (fromDb == null) {
+            throw new UserNotFoundException("This user not found");
+        }
+        List<Task> ownerTasks = taskService.getOwnerTasks(fromDb);
+        if (ownerTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(ownerTasks);
 
+    }
+
+    @GetMapping("/{ownerId}/tasks/{taskId}")
+    public ResponseEntity<Task> getOneOwnerTask(@PathVariable("ownerId") long userId,
+                                                @PathVariable("taskId") long taskId) {
+        User userFromDb = userService.exists(userId);
+        if (userFromDb == null) {
+            throw new UserNotFoundException("This user not found");
+        }
+        Task taskFromDb = taskService.exists(taskId);
+        if (taskFromDb == null) {
+            throw new TaskNotFoundException("This task not found");
+        }
+        Task task = taskService.findOne(taskId, userFromDb);
+        if (task == null) {
+            throw new TaskNotFoundException("This user does not have this task");
+        }
+        return ResponseEntity.ok().body(task);
+    }
+
+    @GetMapping("/{executorId}/executor")
+    public ResponseEntity<List<Task>> getAllExecutorTasks(@PathVariable("executorId") long executorIdId) {
+
+        return ResponseEntity.ok(null);
+
+    }
 }

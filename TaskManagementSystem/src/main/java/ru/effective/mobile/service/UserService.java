@@ -16,5 +16,7 @@ public interface UserService {
 
     void changeUser(User updateUser, Map<String, Object> paramForNewUser);
 
-    void deleteUser(long userId);
+    boolean deleteUser(long userId);
+
+    User exists(long id);
 }

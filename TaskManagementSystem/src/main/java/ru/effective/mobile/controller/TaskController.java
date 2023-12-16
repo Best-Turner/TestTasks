@@ -2,6 +2,7 @@ package ru.effective.mobile.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.expression.AccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users/{userId}/tasks")
+@RequestMapping("/api/{userId}/tasks")
 
 public class TaskController {
 
@@ -28,17 +29,25 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<Task>> getTasks(@PathVariable("userId") User user) {
+        return ResponseEntity.ofNullable(taskService.getOwnerTasks(user));
+    }
+
     @GetMapping("/{taskId}")
-    public ResponseEntity<Task> getTask(@PathVariable("taskId") long taskId,
-                                        @PathVariable("userId") User user) {
+    public ResponseEntity<Task> getOneTask(@PathVariable("taskId") long taskId,
+                                           @PathVariable("userId") User user) {
         Task task = taskService.findOne(taskId, user);
-        return (task != null) ? ResponseEntity.ok(task) : ResponseEntity.notFound().build();
+        if (task == null) {
+            throw new TaskNotFoundException("This task not found");
+        }
+        return ResponseEntity.ok(task);
     }
 
     @PostMapping()
-    public ResponseEntity<HttpStatus> saveTask(@PathVariable("userId") long userId,
-                                               @RequestBody @Valid Task task,
-                                               BindingResult bindingResult) {
+    public ResponseEntity<String> saveTask(@PathVariable("userId") long userId,
+                                           @RequestBody @Valid Task task,
+                                           BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             StringBuilder errorMessage = new StringBuilder();
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
@@ -49,14 +58,13 @@ public class TaskController {
             }
             throw new TaskNotCreatedException(errorMessage);
         }
-
         taskService.saveTask(task, userId);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Task created!!");
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity updateTask(@PathVariable("taskId") Task taskFromDB,
-                                     @PathVariable("userid") long ownerId,
+                                     @PathVariable("userId") long ownerId,
                                      @RequestBody Map<String, Object> request) {
 
         if (taskFromDB == null || taskFromDB.getOwner().getId() != ownerId) {
@@ -72,23 +80,15 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> allTasks = taskService.getAllTasks();
-        return ResponseEntity.ofNullable(allTasks);
-    }
 
-    @GetMapping()
-
-    @PatchMapping("/{taskId}/{executorId}/status")
+    @PatchMapping("/{taskId}/status")
     public ResponseEntity<String> updateTaskStatus(@PathVariable("taskId") Task task,
-                                                   @PathVariable("executorId") long executorId,
+                                                   @PathVariable("userId") long executorId,
                                                    @RequestBody Map<String, String> requestParam) {
 
         try {
             taskService.changeStatus(task, executorId, requestParam);
             return ResponseEntity.ok("Status changed!");
-
         } catch (InvalidParameterException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -100,9 +100,16 @@ public class TaskController {
                                                      @RequestBody Map<String, Object> requestParam) {
         try {
             taskService.assignExecutor(taskId, ownerId, requestParam);
-            return ResponseEntity.ok().body("Executor is assign");
-        } catch (UserNotFoundException | TaskNotFoundException | InvalidParameterException | MissingFieldError e) {
+        } catch (AccessException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+        return ResponseEntity.ok().body("Executor is assign");
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> allTasks = taskService.getAllTasks();
+        return ResponseEntity.ofNullable(allTasks);
+    }
+
 }
