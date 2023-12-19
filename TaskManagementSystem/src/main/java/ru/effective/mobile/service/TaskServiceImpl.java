@@ -174,7 +174,7 @@ public class TaskServiceImpl implements TaskService {
     private void checkExecutorExists(long executorId) {
         boolean exists = taskRepository.existsExecutor(executorId);
         if (!exists) {
-            throw new UserNotFoundException("This executor not found");
+            throw new UserNotFoundException("This user has no executable tasks");
         }
     }
 }

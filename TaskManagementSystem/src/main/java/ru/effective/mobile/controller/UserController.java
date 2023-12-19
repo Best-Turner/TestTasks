@@ -104,9 +104,9 @@ public class UserController {
     }
 
     @GetMapping("/{executorId}/executor")
-    public ResponseEntity<List<Task>> getAllExecutorTasks(@PathVariable("executorId") long executorIdId) {
-
-        return ResponseEntity.ok(null);
+    public ResponseEntity<List<Task>> getAllExecutorTasks(@PathVariable("executorId") long executorId) {
+        List<Task> allExecutorTasks = taskService.getAllExecutorTasks(executorId);
+        return ResponseEntity.ok(allExecutorTasks);
 
     }
 }

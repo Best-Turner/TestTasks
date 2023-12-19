@@ -19,6 +19,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Task findTaskByExecutorId(long executorId);
 
-    @Query("select count(*)>0 from Task t where t.executor.id = : executorId")
+    @Query("select count(*)>0 from Task t where t.executor.id = :executorId")
     boolean existsExecutor(@Param(value = "executorId") long executorId);
 }
