@@ -1,0 +1,14 @@
+
+t	java:S1270"XRefactor the code in order to not assign to this loop counter from within the loop body.(Ó¹½¯8˜šÔ—È1
+7
+java:S1220""Move this file to a named package.8™šÔ—È1
+D
+java:S2189
+""Add an end condition to this loop.(˜ïˆžÿÿÿÿÿ8ÖšÔ—È1
+<
+java:S1659"Declare "m" on a separate line.(Ç‹¥Ü8ÛšÔ—È1
+L	java:S106"+Replace this use of System.out by a logger.(”­„¡ûÿÿÿÿ8ÜšÔ—È1
+L	java:S106"+Replace this use of System.out by a logger.(ªÓ¼áþÿÿÿÿ8ÜšÔ—È1
+L	java:S106"+Replace this use of System.out by a logger.(Á¤àýÿÿÿÿ8ÝšÔ—È1
+o
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(ìÜ ó8ÝšÔ—È1
