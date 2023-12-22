@@ -93,9 +93,7 @@ public class UserController {
             throw new UserNotFoundException("This user not found");
         }
         Task taskFromDb = taskService.exists(taskId);
-        if (taskFromDb == null) {
-            throw new TaskNotFoundException("This task not found");
-        }
+
         Task task = taskService.findOne(taskId, userFromDb);
         if (task == null) {
             throw new TaskNotFoundException("This user does not have this task");
@@ -110,3 +108,16 @@ public class UserController {
 
     }
 }
+
+// GET api/users/ - получение списка всех пользователей
+// GET api/users/tasks/ - получение всех моих задач(как автора задач)
+// GET api/users/tasks/execute/ - получение всех моих задач для выполнения
+// GET api/users/tasks/1/execute?comment=true - получение информации о задаче для выполнения с taskId=1
+// PATCH api/users/tasks/1/execute/status - изменение статуса задачи (доступно только для пользователей которые назначены как исполнители)
+// GET api/users/tasks/1 - получение одной моей задачи
+// GET api/users/1/tasks/- получение всех задач пользователя с id=1
+// GET api/users/1/tasks?taskId=:taskId - получение одной задачи, пользователя c userId = 1, и taskId c :taskId
+// GET api/users/executor/ - получение списка всех исполнителей моих задач
+// GET api/users/executor/1/tasks/ - получение всех задач исполнителя с id = 1
+// GET api/users/executor/1/tasks?taskId=1 - получение одной задачи исполнителя с id = 1
+

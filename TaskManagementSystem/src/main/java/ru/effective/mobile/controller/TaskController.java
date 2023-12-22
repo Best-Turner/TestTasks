@@ -36,7 +36,18 @@ public class TaskController {
 
     @GetMapping("/{taskId}")
     public ResponseEntity<Task> getOneTask(@PathVariable("taskId") long taskId,
-                                           @PathVariable("userId") User user) {
+                                           @PathVariable("userId") User user,
+                                           @RequestParam(name = "userId", required = false) Long userId,
+                                           @RequestParam(name = "executorId", required = false) Long executorId) {
+
+        if (userId != null) {
+
+
+        }
+        if (executorId != null) {
+            Task oneExecutorTask = taskService.getOneExecutorTask(executorId, taskId);
+            return ResponseEntity.ok(oneExecutorTask);
+        }
         Task task = taskService.findOne(taskId, user);
         if (task == null) {
             throw new TaskNotFoundException("This task not found");

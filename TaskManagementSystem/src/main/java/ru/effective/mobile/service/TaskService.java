@@ -29,6 +29,6 @@ public interface TaskService {
     void assignExecutor(long taskId, long ownerId, Map<String, Object> requestParam) throws AccessException;
     Task exists(long taskId);
     List<Task> getAllExecutorTasks(long executorId);
-    Task getOneExecutorTask(long executorId);
+    Task getOneExecutorTask(long executorId, long taskId);
 
 }

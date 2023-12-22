@@ -59,7 +59,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task findOne(long taskId, User user) {
+    public Task findOne(long taskId, long user) {
+        if (exists(user))
         return taskRepository.findTaskByIdAndOwner(taskId, user);
 
     }
@@ -140,7 +141,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Task exists(long taskId) {
-        return taskRepository.findById(taskId).orElse(null);
+        return taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("This task not found"));
 
     }
 
@@ -151,9 +152,9 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task getOneExecutorTask(long executorId) {
+    public Task getOneExecutorTask(long executorId, long taskId) {
         checkExecutorExists(executorId);
-        return taskRepository.findTaskByExecutorId(executorId);
+        return taskRepository.findTaskByExecutorIdAndId(executorId, taskId);
     }
 
 
