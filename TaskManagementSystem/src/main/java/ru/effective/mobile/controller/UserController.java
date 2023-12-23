@@ -15,7 +15,6 @@ import ru.effective.mobile.model.User;
 import ru.effective.mobile.service.TaskService;
 import ru.effective.mobile.service.UserService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +29,11 @@ public class UserController {
     public UserController(UserService service, TaskService taskService) {
         this.userService = service;
         this.taskService = taskService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ofNullable(userService.findAll());
     }
 
     @PostMapping("/register")
@@ -71,6 +75,7 @@ public class UserController {
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
+    // получение всех задач данного пользователя
     @GetMapping("/{ownerId}/tasks")
     public ResponseEntity<List<Task>> getAllOwnerTasks(@PathVariable("ownerId") long userId) {
         User fromDb = userService.exists(userId);
@@ -85,6 +90,7 @@ public class UserController {
 
     }
 
+    //получение конкретной задачи данного пользователя
     @GetMapping("/{ownerId}/tasks/{taskId}")
     public ResponseEntity<Task> getOneOwnerTask(@PathVariable("ownerId") long userId,
                                                 @PathVariable("taskId") long taskId) {
@@ -92,32 +98,16 @@ public class UserController {
         if (userFromDb == null) {
             throw new UserNotFoundException("This user not found");
         }
-        Task taskFromDb = taskService.exists(taskId);
-
-        Task task = taskService.findOne(taskId, userFromDb);
-        if (task == null) {
-            throw new TaskNotFoundException("This user does not have this task");
+        if (taskService.exists(taskId)) {
+            Task task = taskService.getTaskByIdAndAuthorId(taskId, userFromDb);
+            if (task == null) {
+                throw new TaskNotFoundException("This user does not have this task");
+            }
+            return ResponseEntity.ok().body(task);
         }
-        return ResponseEntity.ok().body(task);
-    }
-
-    @GetMapping("/{executorId}/executor")
-    public ResponseEntity<List<Task>> getAllExecutorTasks(@PathVariable("executorId") long executorId) {
-        List<Task> allExecutorTasks = taskService.getAllExecutorTasks(executorId);
-        return ResponseEntity.ok(allExecutorTasks);
-
+        throw new TaskNotFoundException("Task with ID = " + taskId + " not found");
     }
 }
 
-// GET api/users/ - получение списка всех пользователей
-// GET api/users/tasks/ - получение всех моих задач(как автора задач)
-// GET api/users/tasks/execute/ - получение всех моих задач для выполнения
-// GET api/users/tasks/1/execute?comment=true - получение информации о задаче для выполнения с taskId=1
-// PATCH api/users/tasks/1/execute/status - изменение статуса задачи (доступно только для пользователей которые назначены как исполнители)
-// GET api/users/tasks/1 - получение одной моей задачи
-// GET api/users/1/tasks/- получение всех задач пользователя с id=1
-// GET api/users/1/tasks?taskId=:taskId - получение одной задачи, пользователя c userId = 1, и taskId c :taskId
-// GET api/users/executor/ - получение списка всех исполнителей моих задач
-// GET api/users/executor/1/tasks/ - получение всех задач исполнителя с id = 1
-// GET api/users/executor/1/tasks?taskId=1 - получение одной задачи исполнителя с id = 1
+
 

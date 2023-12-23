@@ -58,15 +58,15 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findAll();
     }
 
-    @Override
-    public Task findOne(long taskId, long user) {
-        if (exists(user))
-        return taskRepository.findTaskByIdAndOwner(taskId, user);
 
+    @Override
+    public Task getTaskByIdAndAuthorId(long taskId, User user) {
+        return taskRepository.findTaskByIdAndOwner(taskId, user)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found"));
     }
 
     @Override
-    public void changeTask(Task updateTask, Map<String, Object> request) {
+    public void updateTask(Task updateTask, Map<String, Object> request) {
         ObjectMapper objectMapper = new ObjectMapper();
         String notAssign = "executor";
         if (request.containsKey(notAssign)) {
@@ -83,6 +83,7 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.deleteById(id);
     }
 
+    //изменить статус может только исполнитель
     @Override
     public void changeStatus(Task task, long executorId, Map<String, String> requestParam) throws InvalidParameterException {
 
@@ -140,9 +141,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task exists(long taskId) {
-        return taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("This task not found"));
-
+    public boolean exists(long taskId) {
+        return taskRepository.existsById(taskId);
     }
 
     @Override
@@ -157,11 +157,15 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findTaskByExecutorIdAndId(executorId, taskId);
     }
 
+    @Override
+    public List<User> getExecutorsMyTask(long authorId) {
+        return taskRepository.allMyExecutors(authorId);
+    }
+
 
     private static String[] getNullPropertyNames(Object source) {
         final BeanWrapper src = new BeanWrapperImpl(source);
         PropertyDescriptor[] pds = src.getPropertyDescriptors();
-
         Set<String> emptyNames = new HashSet<>();
         for (PropertyDescriptor pd : pds) {
             Object srcValue = src.getPropertyValue(pd.getName());

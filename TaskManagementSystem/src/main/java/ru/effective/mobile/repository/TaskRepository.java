@@ -8,12 +8,13 @@ import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findTasksByOwner(User user);
 
-    Task findTaskByIdAndOwner(long taskId, User owner);
+    Optional<Task> findTaskByIdAndOwner(long taskId, User owner);
 
     List<Task> findTasksByExecutorId(long executorId);
 
@@ -21,4 +22,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("select count(*)>0 from Task t where t.executor.id = :executorId")
     boolean existsExecutor(@Param(value = "executorId") long executorId);
+
+    @Query("select u from Task t join User u on (t.executor.id=u.id) and (t.owner.id=:ownerId)")
+    List<User> allMyExecutors(@Param("ownerId") Long ownerId);
+
+
+
 }

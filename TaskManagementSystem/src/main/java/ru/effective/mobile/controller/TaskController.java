@@ -9,13 +9,17 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.effective.mobile.exception.*;
+import ru.effective.mobile.model.Comment;
 import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
+import ru.effective.mobile.service.CommentService;
 import ru.effective.mobile.service.TaskService;
 import ru.effective.mobile.service.UserService;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/{userId}/tasks")
@@ -23,10 +27,12 @@ import java.util.Map;
 public class TaskController {
 
     private final TaskService taskService;
+    private final CommentService commentService;
 
     @Autowired
-    public TaskController(TaskService taskService, UserService userService) {
+    public TaskController(TaskService taskService, UserService userService, CommentService commentService) {
         this.taskService = taskService;
+        this.commentService = commentService;
     }
 
     @GetMapping
@@ -36,19 +42,8 @@ public class TaskController {
 
     @GetMapping("/{taskId}")
     public ResponseEntity<Task> getOneTask(@PathVariable("taskId") long taskId,
-                                           @PathVariable("userId") User user,
-                                           @RequestParam(name = "userId", required = false) Long userId,
-                                           @RequestParam(name = "executorId", required = false) Long executorId) {
-
-        if (userId != null) {
-
-
-        }
-        if (executorId != null) {
-            Task oneExecutorTask = taskService.getOneExecutorTask(executorId, taskId);
-            return ResponseEntity.ok(oneExecutorTask);
-        }
-        Task task = taskService.findOne(taskId, user);
+                                           @PathVariable("userId") User user) {
+        Task task = taskService.getTaskByIdAndAuthorId(taskId, user);
         if (task == null) {
             throw new TaskNotFoundException("This task not found");
         }
@@ -74,15 +69,16 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}")
-    public ResponseEntity updateTask(@PathVariable("taskId") Task taskFromDB,
-                                     @PathVariable("userId") long ownerId,
-                                     @RequestBody Map<String, Object> request) {
-
-        if (taskFromDB == null || taskFromDB.getOwner().getId() != ownerId) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<String> updateTask(@PathVariable("taskId") Long taskId,
+                                             @PathVariable("userId") User author,
+                                             @RequestBody Map<String, Object> request) {
+        if (taskId != null) {
+            Task taskByIdAndAuthorId = taskService.getTaskByIdAndAuthorId(taskId, author);
+            taskService.updateTask(taskByIdAndAuthorId, request);
+            return ResponseEntity.ok("Successful!");
         }
-        taskService.changeTask(taskFromDB, request);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect data! \n" +
+                "Please enter the id of the task you want to change");
     }
 
     @DeleteMapping("/{taskId}")
@@ -91,7 +87,52 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
+    // добавить новый комментарий
+    @PostMapping("/{taskById}/comment")
+    public ResponseEntity<String> addCommentToTask(@PathVariable Optional<Task> taskById,
+                                                   @PathVariable User userId,
+                                                   @RequestBody @Valid Comment text,
+                                                   BindingResult bindingResult) {
+        Task task = taskById.orElseThrow(() -> new TaskNotFoundException("This task not found"));
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            for (FieldError error : fieldErrors) {
+                errorMessage.append(error.getField())
+                        .append(" - ")
+                        .append(error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(errorMessage.toString());
+        }
 
+        commentService.save(text, userId, task);
+        return ResponseEntity.ok("Successful!");
+    }
+
+    //получение всех моих задач на выполнение
+    @GetMapping("/perform")
+    public ResponseEntity<List<Task>> getAllMyTasksToComplete(@PathVariable Long userId) {
+        List<Task> allExecutorTasks = taskService.getAllExecutorTasks(userId);
+        if (allExecutorTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(allExecutorTasks);
+
+    }
+
+    // получить конкретную задачу (из списка - на выполнение)
+    @GetMapping("/perform/{taskId}")
+    public ResponseEntity<Task> getOneMyTaskToComplete(@PathVariable Long userId,
+                                                       @PathVariable Long taskId,
+                                                       @RequestParam(required = false) Boolean comment) {
+        Task oneExecutorTask = taskService.getOneExecutorTask(userId, taskId);
+        if (oneExecutorTask == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(oneExecutorTask);
+    }
+
+    //изменить статус задачи (только для исполнителей)
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<String> updateTaskStatus(@PathVariable("taskId") Task task,
                                                    @PathVariable("userId") long executorId,
@@ -105,6 +146,7 @@ public class TaskController {
         }
     }
 
+    //назначить исполнителя для данной задачи
     @PatchMapping("/{taskId}/assign")
     public ResponseEntity<String> assignTaskExecutor(@PathVariable("taskId") long taskId,
                                                      @PathVariable("userId") long ownerId,
