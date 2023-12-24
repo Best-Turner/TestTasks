@@ -1,5 +1,6 @@
 package ru.effective.mobile.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -99,6 +100,7 @@ public class UserController {
             throw new UserNotFoundException("This user not found");
         }
         if (taskService.exists(taskId)) {
+            ObjectMapper objectMapper = new ObjectMapper();
             Task task = taskService.getTaskByIdAndAuthorId(taskId, userFromDb);
             if (task == null) {
                 throw new TaskNotFoundException("This user does not have this task");

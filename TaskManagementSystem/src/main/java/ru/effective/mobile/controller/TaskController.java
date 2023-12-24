@@ -1,6 +1,8 @@
 package ru.effective.mobile.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.expression.AccessException;
 import org.springframework.http.HttpStatus;
@@ -8,7 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import ru.effective.mobile.exception.*;
+import ru.effective.mobile.dto.TaskDTO;
+import ru.effective.mobile.exception.InvalidParameterException;
+import ru.effective.mobile.exception.TaskNotCreatedException;
+import ru.effective.mobile.exception.TaskNotFoundException;
 import ru.effective.mobile.model.Comment;
 import ru.effective.mobile.model.Task;
 import ru.effective.mobile.model.User;
@@ -17,9 +22,8 @@ import ru.effective.mobile.service.TaskService;
 import ru.effective.mobile.service.UserService;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/{userId}/tasks")
@@ -36,14 +40,26 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getTasks(@PathVariable("userId") User user) {
-        return ResponseEntity.ofNullable(taskService.getOwnerTasks(user));
+    public ResponseEntity<List<TaskDTO>> getTasks(@PathVariable("userId") User user,
+                                                  @RequestParam(required = false) boolean comment) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        List<Task> ownerTasks = taskService.getOwnerTasks(user);
+        List<TaskDTO> collect = ownerTasks.stream()
+                .map(task -> objectMapper.convertValue(task, TaskDTO.class))
+                .collect(Collectors.toList());
+
+        if (!comment) {
+            collect.forEach(taskDTO -> taskDTO.setComments(null));
+        }
+        return ResponseEntity.ok(collect);
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<Task> getOneTask(@PathVariable("taskId") long taskId,
                                            @PathVariable("userId") User user) {
         Task task = taskService.getTaskByIdAndAuthorId(taskId, user);
+
         if (task == null) {
             throw new TaskNotFoundException("This task not found");
         }
@@ -106,7 +122,9 @@ public class TaskController {
         }
 
         commentService.save(text, userId, task);
-        return ResponseEntity.ok("Successful!");
+        return ResponseEntity
+                .created(URI.create("api/" + userId.getId().toString() + "/tasks/" + task.getId() + "?comment=true"))
+                .body("Successful!!");
     }
 
     //получение всех моих задач на выполнение
