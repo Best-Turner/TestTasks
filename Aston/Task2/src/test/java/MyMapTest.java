@@ -12,7 +12,7 @@ public class MyMapTest {
 
     @Before
     public void setUp() throws Exception {
-        map = null;
+        map = new MyHashMap<>();
     }
 
     @Test
@@ -39,7 +39,8 @@ public class MyMapTest {
 
     @Test
     public void whenKeyNotExistsThenReturnNull() {
-        assertNull(map.get(KEY));
+        map.put(KEY, VALUE);
+        assertNull(map.get(KEY + 1));
     }
 
 
