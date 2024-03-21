@@ -1,6 +1,8 @@
+import java.util.*;
+
 public class MyHashMap<K, V> implements MyMap<K, V> {
     private static final int DEFAULT_CAPACITY = 16;
-    private Entry<K, V>[] array;
+    private Entry[] array;
     private int size;
 
     public MyHashMap() {
@@ -18,7 +20,7 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             size++;
         } else {
             while (current.next != null) {
-                if (current.key.equals(key)) {
+                if (equalsKey(key, current.getKey())) {
                     current.value = value;
                     return;
                 }
@@ -27,6 +29,14 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             current.next = entryToAdd;
             size++;
         }
+    }
+
+    private boolean equalsKey(K key, K key1) {
+        return equalsHashCode(key, key1) && key.equals(key1);
+    }
+
+    private boolean equalsHashCode(K key, K key1) {
+        return key.hashCode() == key1.hashCode();
     }
 
 
@@ -53,6 +63,7 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
         Entry<K, V> prev = null;
 
         while (current != null) {
+
             if (current.key.equals(key)) {
                 if (prev == null) {
                     array[index] = current.next;
@@ -77,9 +88,64 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             if (currentEntry.key.equals(key)) {
                 return true;
             }
-            currentEntry = currentEntry.next;
+            currentEntry = (Entry<K, V>) currentEntry.next();
         }
         return false;
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return values().stream().anyMatch(el -> el.equals(value));
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return !(size > 0);
+    }
+
+    @Override
+    public Set<K> keySet() {
+        Set<K> keys = new HashSet<>();
+        getEntrySet().forEach(el -> keys.add(el.getKey()));
+        //return (Set<K>) getEntrySet().stream().map(MyMap.Entry::getValue).collect(Collectors.toSet());
+        return keys;
+    }
+
+    @Override
+    public Collection<V> values() {
+        List<V> values = new ArrayList<>();
+        Set<MyMap.Entry<K, V>> entrys = getEntrySet();
+        entrys.forEach(el -> values.add(el.getValue()));
+        return values;
+    }
+
+    @Override
+    public Set<MyMap.Entry<K, V>> entrySet() {
+        return getEntrySet();
+    }
+
+    private Set<MyMap.Entry<K, V>> getEntrySet() {
+        Set<MyMap.Entry<K, V>> entries = new HashSet<>();
+        Entry<K, V> current;
+        for (Entry entry : array) {
+            if (entry == null) {
+                continue;
+            }
+            current = entry;
+            entries.add(current);
+            while (current.next() != null) {
+                current = current.next;
+                entries.add(current);
+            }
+        }
+        return entries;
+    }
+
+
+    @Override
+    public void clear() {
+        array = new Entry[DEFAULT_CAPACITY];
+        size = 0;
     }
 
     @Override
@@ -89,11 +155,11 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
 
 
     private int getIndex(Object key) {
-        return key.hashCode() % array.length;
+        return Math.abs(key.hashCode() % array.length);
     }
 
-    private class Entry<K, V> {
-        private K key;
+    private static class Entry<K, V> implements MyMap.Entry<K, V> {
+        private final K key;
         private V value;
         private Entry<K, V> next;
 
@@ -101,6 +167,21 @@ public class MyHashMap<K, V> implements MyMap<K, V> {
             this.key = key;
             this.value = value;
             this.next = next;
+        }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public MyMap.Entry<K, V> next() {
+            return next;
         }
     }
 }

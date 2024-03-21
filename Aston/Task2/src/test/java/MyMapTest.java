@@ -7,6 +7,7 @@ public class MyMapTest {
 
     private static final String KEY = "key";
     private static final String VALUE = "value";
+    private static final int COUNT_OBJECTS = 10000;
 
     private MyMap<String, String> map;
 
@@ -23,13 +24,15 @@ public class MyMapTest {
     }
 
     @Test
-    public void whenAdd100ObjectThenSizeShouldBe100() {
+    public void whenAddManyObjectThenSizeShouldBeIncrease() {
+        long before = System.currentTimeMillis();
         assertEquals(0, map.size());
-        for (int i = 0; i < 100; i++) {
-            map.put(KEY + i, VALUE + i);
-        }
-        assertEquals(100, map.size());
+        addManyObjects();
+        assertEquals(COUNT_OBJECTS, map.size());
+        long after = System.currentTimeMillis();
+        System.out.println("Время выполнения  = " + (after - before)); // ~ 6 - 7 секунд
     }
+
 
     @Test
     public void whenGetExistsValueByKeyThenReturnThisValue() {
@@ -62,7 +65,23 @@ public class MyMapTest {
     }
 
     @Test
+    public void whenClearMapThanSizeMustBe0() {
+        addManyObjects();
+        assertEquals(COUNT_OBJECTS, map.size());
+        map.clear();
+        assertEquals(0, map.size());
+    }
+
+    @Test
     public void whenRemoveNotExistsElementThenReturnFalse() {
         assertFalse(map.containsKey(KEY));
+    }
+
+
+
+    private void addManyObjects() {
+        for (int i = 0; i < COUNT_OBJECTS; i++) {
+            map.put(KEY.concat(String.valueOf(i)), VALUE.concat(String.valueOf(i)));
+        }
     }
 }
